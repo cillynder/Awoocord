@@ -1,4 +1,4 @@
-version = "1.0.4"
+version = "1.0.5"
 description = "More lenient message grouping"
 
 android {
@@ -8,6 +8,9 @@ android {
 aliucord {
     // Changelog of your plugin
     changelog.set("""
+        # 1.0.5
+        * Don't clump messages between a new day (midnight)
+
         # 1.0.4
         * Don't clump forwarded messages to avoid ambiguity
 
