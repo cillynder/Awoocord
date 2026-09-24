@@ -47,6 +47,8 @@ class Bocchi : Plugin() {
                 message.messageSnapshots?.isNotEmpty() == true ||
                 message2.messageSnapshots?.isNotEmpty() == true ||
                 timeDiff >= 420000 || // WidgetChatListModelMessages.MESSAGE_CONCAT_TIMESTAMP_DELTA_THRESHOLD
+                items.listItemMostRecentlyAdded.type in arrayOf(ChatListEntry.TIMESTAMP) ||
+                (message.isWebhook && message.author?.username != message2.author.username)
 //                items.listItemMostRecentlyAdded.type !in arrayOf(0, 1, 4, 21) ||
 //                message2.hasAttachments() ||
 //                message2.hasEmbeds() ||
@@ -55,7 +57,6 @@ class Bocchi : Plugin() {
 //                message.hasAttachments() ||
 //                message.hasEmbeds() ||
 //                items.concatCount >= 5 ||
-                (message.isWebhook && message.author?.username != message2.author.username)
             )
         }
     }
