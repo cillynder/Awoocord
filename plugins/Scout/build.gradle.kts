@@ -1,4 +1,4 @@
-version = "1.4.3"
+version = "1.4.4"
 description = "Backported and improved search functionality"
 
 android {
@@ -14,6 +14,9 @@ aliucord {
 
         Changelog {added marginTop}
         ======================
+        # 1.4.4
+        * Make search state persist a bit more consistently
+
         # 1.4.3
         * Clear search state when switching servers or DMs
 
