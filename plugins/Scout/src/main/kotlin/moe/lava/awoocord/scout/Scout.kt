@@ -126,6 +126,7 @@ class Scout : Plugin() {
     init {
         @Suppress("DEPRECATION")
         needsResources = true
+        settingsTab = SettingsTab(ScoutSettings.Page::class.java, SettingsTab.Type.PAGE)
     }
 
     override fun load(context: Context) {
@@ -616,10 +617,10 @@ class Scout : Plugin() {
             .takeIf { it != 0L }
             ?: StoreStream.getChannelsSelected().id
 
+    var lastGuildChannel: Long? = null
+    val persisting get() = ScoutSettings.persistState && (lastGuildChannel == currentGuildChannel)
     // Persist search state when backing out
     private fun patchSearchStatePersist() {
-        var lastGuildChannel: Long? = null
-
         patcher.before<WidgetSearch>(
             "configureUI",
             WidgetSearch.Model::class.java
@@ -632,13 +633,13 @@ class Scout : Plugin() {
         }
 
         patcher.before<StoreSearch>("clear") { param ->
-            if (lastGuildChannel == currentGuildChannel) param.result = null
+            if (persisting) param.result = null
         }
 
         // Persist search input state
         var lastInput = ""
         patcher.after<WidgetSearch>("configureSearchInput") {
-            if (lastGuildChannel == currentGuildChannel) {
+            if (persisting) {
                 val input = WidgetSearch.`access$getBinding$p`(this).c
                 ViewExtensions.setText(input, lastInput);
                 ViewExtensions.setSelectionEnd(input);
@@ -657,7 +658,7 @@ class Scout : Plugin() {
         var recreated = false
         patcher.before<WidgetSearch>("onViewBound", View::class.java) {
             recreated = isRecreated
-            recreatedAccess = lastGuildChannel == currentGuildChannel
+            recreatedAccess = persisting
         }
         patcher.after<WidgetSearch>("onViewBound", View::class.java) {
             recreatedAccess = recreated
