@@ -10,6 +10,7 @@ package moe.lava.awoocord.scout
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
+import android.text.Editable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -77,7 +78,7 @@ import com.discord.utilities.search.suggestion.entries.UserSuggestion
 import com.discord.utilities.search.validation.SearchData
 import com.discord.utilities.view.extensions.ViewExtensions
 import com.discord.widgets.search.WidgetSearch
-import com.discord.widgets.search.`WidgetSearch$configureSearchInput$5`
+import com.discord.widgets.search.`WidgetSearch$configureSearchInput$2`
 import com.discord.widgets.search.results.WidgetSearchResults
 import com.discord.widgets.search.suggestions.WidgetSearchSuggestions
 import com.discord.widgets.search.suggestions.`WidgetSearchSuggestions$configureUI$1`
@@ -645,11 +646,11 @@ class Scout : Plugin() {
                 lastInput = ""
             }
         }
-        patcher.after<`WidgetSearch$configureSearchInput$5`>(
+        patcher.after<`WidgetSearch$configureSearchInput$2`>(
             "invoke",
-            String::class.java,
-        ) { (_, input: String) ->
-            lastInput = input
+            Editable::class.java,
+        ) { (_, input: Editable) ->
+            lastInput = input.toString()
         }
 
         // Don't show keyboard when persisting
