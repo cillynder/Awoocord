@@ -1,4 +1,4 @@
-version = "1.4.4"
+version = "1.4.5"
 description = "Backported and improved search functionality"
 
 android {
@@ -14,6 +14,9 @@ aliucord {
 
         Changelog {added marginTop}
         ======================
+        # 1.4.5
+        * Add toggle to customise search persistence behaviour
+
         # 1.4.4
         * Make search state persist a bit more consistently
 
