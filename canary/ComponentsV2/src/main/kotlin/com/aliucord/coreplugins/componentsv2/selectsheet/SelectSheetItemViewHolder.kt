@@ -108,10 +108,7 @@ internal class SelectSheetItemViewHolder(adapter: SelectSheetAdapter)
             null
         )
         title.text = GuildMember.Companion!!.getNickOrUsername(item.member, item.user)
-        val descText = item.user.username + if (item.user.discriminator != 0)
-            UserUtils.INSTANCE.getDiscriminatorWithPadding(item.user)
-        else
-            ""
+        val descText = UserUtils.INSTANCE.getUserNameWithDiscriminator(item.user, null, null)
         if (title.text != descText) {
             title.setPadding(0, 12.dp, 0, 0)
             description.visibility = View.VISIBLE

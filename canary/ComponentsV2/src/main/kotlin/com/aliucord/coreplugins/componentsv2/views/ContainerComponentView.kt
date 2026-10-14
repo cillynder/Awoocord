@@ -9,6 +9,7 @@ import androidx.core.graphics.ColorUtils
 import com.aliucord.Logger
 import com.aliucord.coreplugins.componentsv2.BotUiComponentV2Entry
 import com.aliucord.coreplugins.componentsv2.ComponentV2Type
+import com.aliucord.coreplugins.componentsv2.applyEmbedStyle
 import com.aliucord.coreplugins.componentsv2.models.ContainerMessageComponent
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
@@ -35,13 +36,12 @@ class ContainerComponentView(ctx: Context) : ConstraintLayout(ctx), ComponentVie
 
     init {
         MaterialCardView(ctx).addTo(this) {
-            radius = 8.dp.toFloat()
-            elevation = 0f
-            setCardBackgroundColor(ColorCompat.getThemedColor(ctx, R.b.colorBackgroundSecondary))
+            applyEmbedStyle()
             layoutParams = LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                 topToTop = PARENT_ID
                 bottomToBottom = PARENT_ID
                 startToStart = PARENT_ID
+                bottomMargin = ctx.resources.getDimension(R.d.chat_cell_vertical_spacing_padding).toInt()
             }
             ConstraintLayout(ctx).addTo(this) {
                 accentDivider = View(ctx).addTo(this) {

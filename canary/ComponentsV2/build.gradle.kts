@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-version = "8.8.0"
+version = "22.14.0"
 description = "Beta backport of ComponentsV2"
 
 android {
@@ -12,12 +12,17 @@ aliucord {
     changelog.set("""
         TODO {fixed}
         ======================
-        * File component
         * SelectV2: searching
         * SelectV2: showing selected items in chat list
         
         Changelog {added marginTop}
         ======================
+        # 22.14.0
+        * File components
+        * Link-embeds with components (requires patches 1.5.1; make sure to update base app!)
+        * Fixed some media not displaying correctly (requires patches 1.5.0)
+        * Thumbnails are now clickable
+
         # 8.8.0
         * Fix a possible weird crash
 
@@ -48,7 +53,8 @@ tasks.register<ShadowJar>("relocateJar") {
 //        exclude("com.discord.api.botuikit.ComponentType")
 //    }
     relocate("com.aliucord.coreplugins.componentsv2", "moe.lava.corenary.componentsv2")
-    relocate("com.aliucord.coreplugins.ComponentsV2", "moe.lava.corenary.ComponentsV2")
+    relocate("com.aliucord.coreplugins.CV2Compat", "moe.lava.corenary.componentsv2.CV2Compat")
+    relocate("com.aliucord.utils.ViewUtils", "moe.lava.corenary.componentsv2.ViewUtils")
     archiveClassifier.set("shadowed")
     destinationDirectory.set(File(buildDir, "intermediates"))
 }

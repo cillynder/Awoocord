@@ -1,4 +1,4 @@
-package com.aliucord.coreplugins
+package com.aliucord.coreplugins.componentsv2
 
 import android.content.Context
 import android.view.ViewGroup
@@ -6,16 +6,23 @@ import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.aliucord.Utils
 import com.aliucord.annotations.AliucordPlugin
-import com.aliucord.coreplugins.componentsv2.ComponentV2Type
+import com.aliucord.coreplugins.EMBED_COMPONENTS_GATE
+import com.aliucord.coreplugins.compat
 import com.aliucord.coreplugins.componentsv2.models.*
-import com.aliucord.coreplugins.componentsv2.patchMessageItems
 import com.aliucord.coreplugins.componentsv2.views.*
+import com.aliucord.coreplugins.gatedAccessField
+import com.aliucord.coreplugins.stopCompat
 import com.aliucord.entities.Plugin
 import com.aliucord.patcher.*
+import com.aliucord.updater.ManagerBuild
 import com.discord.api.botuikit.*
+import com.discord.api.channel.Channel
+import com.discord.api.message.embed.MessageEmbed
 import com.discord.models.botuikit.*
+import com.discord.models.member.GuildMember
 import com.discord.models.message.Message
 import com.discord.stores.StoreApplicationInteractions.InteractionSendState
+import com.discord.stores.StoreMessageState
 import com.discord.utilities.view.extensions.ViewExtensions
 import com.discord.widgets.botuikit.*
 import com.discord.widgets.botuikit.ComponentChatListState.ComponentStoreState
@@ -24,10 +31,14 @@ import com.discord.widgets.botuikit.views.select.SelectComponentView
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapter
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemBotComponentRow
 import com.discord.widgets.chat.list.entries.BotUiComponentEntry
+import com.discord.widgets.chat.list.entries.ChatListEntry
+import com.discord.widgets.chat.list.entries.EmbedEntry
 import com.lytefast.flexinput.R
 import de.robv.android.xposed.XposedBridge
 
 val Message.isComponentV2 get() = ((flags ?: 0) shr 15) and 1 == 1L
+internal val MessageEmbed.components by gatedAccessField<List<Component>>(EMBED_COMPONENTS_GATE)
+internal inline val MessageEmbed.isComponents get() = this.components?.isNotEmpty() == true
 
 @AliucordPlugin(requiresRestart = true)
 @Suppress("unused")
@@ -37,6 +48,32 @@ class ComponentsV2 : Plugin() {
         XposedBridge.makeClassInheritable(BotUiComponentEntry::class.java)
         // https://github.com/LSPosed/LSPlant/issues/41
         patchMessageItems(patcher)
+
+        if (ManagerBuild.hasPatches(EMBED_COMPONENTS_GATE)) {
+            patcher.after<ChatListEntry.Companion>(
+                "createEmbedEntries",
+                Message::class.java,
+                StoreMessageState.State::class.java,
+                Boolean::class.javaPrimitiveType!!,
+                Boolean::class.javaPrimitiveType!!,
+                Boolean::class.javaPrimitiveType!!,
+                Boolean::class.javaPrimitiveType!!,
+                Boolean::class.javaPrimitiveType!!,
+                Channel::class.java,
+                GuildMember::class.java,
+                Map::class.java,
+                Map::class.java,
+            ) { param ->
+                @Suppress("UNCHECKED_CAST")
+                val res = param.result as List<ChatListEntry>
+                param.result = res.filter {
+                    if (it !is EmbedEntry) return@filter true
+                    !it.embed.isComponents
+                }
+            }
+        } else {
+            logger.warn("Outdated base app, no link-embed components support!")
+        }
 
         patcher.instead<ComponentStateMapper>(
             "toMessageLayoutComponent",
@@ -57,7 +94,7 @@ class ComponentsV2 : Plugin() {
                 is MediaGalleryComponent ->
                     MediaGalleryMessageComponent.mergeToMessageComponent(layout, index)
                 is FileComponent ->
-                    ActionRowMessageComponent(layout.type, index, components)
+                    FileMessageComponent.mergeToMessageComponent(layout, index)
                 is SeparatorComponent ->
                     SeparatorMessageComponent.mergeToMessageComponent(layout, index)
                 is ContainerComponent ->
@@ -95,7 +132,7 @@ class ComponentsV2 : Plugin() {
                 ComponentV2Type.MEDIA_GALLERY ->
                     MediaGalleryComponentView(this.context)
                 ComponentV2Type.FILE ->
-                    null
+                    FileComponentView(this.context)
                 ComponentV2Type.SEPARATOR ->
                     SeparatorComponentView(this.context)
                 ComponentV2Type.CONTAINER ->

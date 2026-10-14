@@ -7,10 +7,14 @@ import com.aliucord.Constants
 import com.aliucord.Utils
 import com.aliucord.api.PatcherAPI
 import com.aliucord.coreplugins.componentsv2.ComponentV2Type
+import com.aliucord.coreplugins.componentsv2.ComponentsV2
+import com.aliucord.coreplugins.componentsv2.isComponentV2
 import com.aliucord.patcher.*
+import com.aliucord.updater.ManagerBuild
 import com.aliucord.utils.GsonUtils
 import com.aliucord.utils.GsonUtils.toJson
 import com.aliucord.utils.ReflectUtils
+import com.aliucord.utils.accessField
 import com.discord.api.botuikit.ComponentType
 import com.discord.api.botuikit.gson.ComponentRuntimeTypeAdapter
 import com.discord.api.botuikit.gson.ComponentTypeTypeAdapter
@@ -20,9 +24,16 @@ import com.discord.models.message.Message
 import com.discord.widgets.chat.list.adapter.WidgetChatListAdapterItemMessage
 import com.google.gson.stream.JsonReader
 import java.io.File
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 import b.a.b.a as TypeAdapterRegistrar
 import b.i.d.c as FieldNamingPolicy
 import b.i.d.e as GsonBuilder
+
+internal const val CONTENT_TYPE_GATE = "1.5.0"
+internal const val EMBED_COMPONENTS_GATE = "1.5.1"
+
+internal var MessageAttachment.contentType by gatedAccessField<String>(CONTENT_TYPE_GATE)
 
 fun ComponentsV2.compat(patcher: PatcherAPI) {
     // check for old cursed plugin, probably not needed anymore
@@ -125,6 +136,17 @@ object CV2Compat {
         widthField.set(inst, width)
         heightField.set(inst, height)
         return inst
+    }
+}
+
+fun <T> gatedAccessField(version: String, fieldName: String? = null): ReadWriteProperty<Any, T?> {
+    return if (ManagerBuild.hasPatches(version)) {
+        accessField(fieldName)
+    } else {
+        object : ReadWriteProperty<Any, T?> {
+            override fun getValue(thisRef: Any, property: KProperty<*>): T? { return null }
+            override fun setValue(thisRef: Any, property: KProperty<*>, value: T?) {}
+        }
     }
 }
 

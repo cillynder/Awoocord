@@ -1,5 +1,3 @@
-@file:Suppress("MISSING_DEPENDENCY_CLASS", "MISSING_DEPENDENCY_SUPERCLASS")
-
 package com.aliucord.coreplugins.componentsv2.views
 
 import android.content.Context
@@ -10,9 +8,9 @@ import android.widget.FrameLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import com.aliucord.Logger
-import com.aliucord.coreplugins.CV2Compat
 import com.aliucord.coreplugins.componentsv2.BotUiComponentV2Entry
 import com.aliucord.coreplugins.componentsv2.ComponentV2Type
+import com.aliucord.coreplugins.componentsv2.asAttachment
 import com.aliucord.coreplugins.componentsv2.models.MediaGalleryMessageComponent
 import com.aliucord.utils.DimenUtils.dp
 import com.aliucord.utils.ViewUtils.addTo
@@ -74,17 +72,7 @@ class MediaGalleryComponentView(ctx: Context) : ConstraintLayout(ctx), Component
         layout.removeAllViews()
         val pendingViews = mutableListOf<Pair<MessageAttachment, InlineMediaView>>()
         component.items.forEachIndexed { index, it ->
-            val media = it.media
-            // TODO: there's probably a utility to extract filename from url
-            val name = media.url.split("/").last().split("?").first()
-            val attachment = CV2Compat.createAttachment(
-                name,
-                0,
-                media.proxyUrl,
-                media.url,
-                media.width,
-                media.height,
-            )
+            val attachment = it.media.asAttachment()
 
             val (width, height) = EmbedResourceUtils.INSTANCE.calculateScaledSize(
                 attachment.width!!,
