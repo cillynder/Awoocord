@@ -1,6 +1,5 @@
 package com.aliucord.coreplugins.componentsv2
 
-import com.aliucord.Logger
 import com.aliucord.api.PatcherAPI
 import com.aliucord.coreplugins.EMBED_COMPONENTS_GATE
 import com.aliucord.patcher.*
@@ -30,7 +29,6 @@ fun patchMessageItems(patcher: PatcherAPI) {
             ComponentChatListState.ComponentStoreState::class.java,
             Boolean::class.javaPrimitiveType!!,
         ) { (_, msg: Message) ->
-            Logger("hi").debug(msg.embeds[0].components.toString())
             if (msg.embeds.any { it.isComponents }) {
                 // we get a bit cheeky here :>
                 msg.componentsField = msg.embeds.filter { it.isComponents }.flatMap { it.components!! }
