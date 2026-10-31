@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-version = "22.14.0"
+version = "22.14.1"
 description = "Beta backport of ComponentsV2"
 
 android {
@@ -17,6 +17,9 @@ aliucord {
         
         Changelog {added marginTop}
         ======================
+        # 22.14.1
+        * Fix log spam
+
         # 22.14.0
         * File components
         * Link-embeds with components (requires patches 1.5.1; make sure to update base app!)
