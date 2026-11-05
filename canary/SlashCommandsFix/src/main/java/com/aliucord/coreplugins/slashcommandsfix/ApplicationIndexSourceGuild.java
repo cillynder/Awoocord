@@ -6,9 +6,6 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
-import java.util.Map;
-import java.util.Optional;
-
 class ApplicationIndexSourceGuild implements ApplicationIndexSource {
     long guildId;
 
@@ -19,22 +16,5 @@ class ApplicationIndexSourceGuild implements ApplicationIndexSource {
     @Override
     public String getEndpoint() {
         return String.format("/guilds/%d/application-command-index", this.guildId);
-    }
-
-    @Override
-    public Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache) {
-        return Optional.ofNullable(
-            cache.guild.get(this.guildId)
-        );
-    }
-
-    @Override
-    public void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index) {
-        cache.guild.put(this.guildId, index);
-    }
-
-    @Override
-    public void removeFromCache(ApplicationIndexCache cache) {
-        cache.guild.remove(this.guildId);
     }
 }

@@ -6,11 +6,7 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
-import java.util.Optional;
-
 interface ApplicationIndexSource {
+    /** API endpoint of this index. Also used as its cache key. */
     String getEndpoint();
-    Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache);
-    void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index);
-    void removeFromCache(ApplicationIndexCache cache);
 }
