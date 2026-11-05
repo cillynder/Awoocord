@@ -23,6 +23,7 @@ import com.discord.models.commands.Application;
 import com.discord.models.commands.ApplicationCommand;
 import com.discord.models.commands.ApplicationCommandKt;
 import com.discord.models.commands.ApplicationCommandLocalSendData;
+import com.discord.restapi.RestAPIParams;
 import com.discord.stores.BuiltInCommandsProvider;
 import com.discord.stores.StoreApplicationCommands;
 import com.discord.stores.StoreApplicationCommands$requestApplicationCommands$1;
@@ -60,6 +61,7 @@ final class Patches {
     private Field skemaErrorItemCodeField;
     private Field skemaErrorItemMessageField;
     private Field storeApplicationCommandsBuiltInCommandsProviderField;
+    private DefaultNames defaultNames;
 
     Patches(Logger logger) throws Throwable {
         this.logger = logger;
@@ -233,6 +235,31 @@ final class Patches {
             })
         );
 
+        // Show localized command names, but send the default ones (see DefaultNames).
+        // Every interaction this client sends (commands and autocomplete) is built here.
+        try {
+            var defaultNames = new DefaultNames(
+                com.discord.api.commands.ApplicationCommandData.class,
+                com.discord.api.commands.ApplicationCommandValue.class
+            );
+            Patcher.addPatch(
+                RestAPIParams.ApplicationCommand.class.getDeclaredConstructor(
+                    long.class, String.class, String.class, String.class,
+                    com.discord.api.commands.ApplicationCommandData.class, String.class, String.class
+                ),
+                new PreHook(param -> {
+                    try {
+                        defaultNames.applyTo(param.args[4]);
+                    } catch (Throwable e) {
+                        this.logger.error("Failed to restore default command names", e);
+                    }
+                })
+            );
+            this.defaultNames = defaultNames;
+        } catch (Throwable e) {
+            this.logger.error("Can't rewrite command names when sending; showing default names instead", e);
+        }
+
         GatewayAPI.onEvent("GUILD_APPLICATION_COMMAND_INDEX_UPDATE", ApiGuildApplicationCommandIndexUpdate.class, guildApplicationCommandIndexUpdate -> {
             this.cleanApplicationIndexCache(new ApplicationIndexSourceGuild(guildApplicationCommandIndexUpdate.guildId));
             return null;
@@ -274,10 +301,26 @@ final class Patches {
         if (!applicationIndex.isPresent()) {
             try {
                 // Request application index from API
+                var json = Http.Request.newDiscordRNRequest(source.getEndpoint())
+                    .execute()
+                    .text();
+
+                // `name` is localized and `name_default` is what interactions must contain.
+                // Show localized names and let DefaultNames swap them when sending; if that
+                // rewrite isn't available, show (and therefore send) the default names.
+                var displayJson = json;
+                try {
+                    if (this.defaultNames != null) {
+                        this.defaultNames.update(json);
+                    } else {
+                        displayJson = DefaultNames.withDefaultNames(json);
+                    }
+                } catch (Throwable e) {
+                    this.logger.error("Failed to read default command names", e);
+                }
+
                 applicationIndex = Optional.of(
-                    Http.Request.newDiscordRNRequest(source.getEndpoint())
-                        .execute()
-                        .json(GsonUtils.getGsonRestApi(), ApiApplicationIndex.class)
+                    GsonUtils.fromJson(GsonUtils.getGsonRestApi(), displayJson, ApiApplicationIndex.class)
                         .toModel()
                 );
             } catch (Exception e) {
