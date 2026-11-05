@@ -6,8 +6,6 @@
 
 package com.aliucord.coreplugins.slashcommandsfix;
 
-import java.util.Optional;
-
 class ApplicationIndexSourceDm implements ApplicationIndexSource {
     long channelId;
 
@@ -18,22 +16,5 @@ class ApplicationIndexSourceDm implements ApplicationIndexSource {
     @Override
     public String getEndpoint() {
         return String.format("/channels/%d/application-command-index", this.channelId);
-    }
-
-    @Override
-    public Optional<ApplicationIndex> getFromCache(ApplicationIndexCache cache) {
-        return Optional.ofNullable(
-            cache.dm.get(this.channelId)
-        );
-    }
-
-    @Override
-    public void insertIntoCache(ApplicationIndexCache cache, ApplicationIndex index) {
-        cache.dm.put(this.channelId, index);
-    }
-
-    @Override
-    public void removeFromCache(ApplicationIndexCache cache) {
-        cache.dm.remove(this.channelId);
     }
 }
